@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Stock Peer Comparison Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .best-performer { @apply bg-emerald-100 text-emerald-800 font-bold border-2 border-emerald-500; }
+        .worst-performer { @apply bg-rose-100 text-rose-800; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+
+    <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50 px-4 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-chart-line text-2xl text-amber-400"></i>
+                <h1 class="text-xl font-bold tracking-tight">EquityRadar <span class="text-sm font-normal text-indigo-200">| Peer Equity Analysis Portal</span></h1>
+            </div>
+            <div class="text-xs sm:text-sm bg-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-700">
+                <i class="fa-solid fa-money-bill-wave text-emerald-400 mr-1"></i> Values in <strong>Crores (Cr)</strong> where applicable
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-8">
+        
+        <section class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+            <div class="bg-slate-100 px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-600"></i> Step 1: Input Financial Parameters
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Fill details for up to 4 companies. Leave columns blank to skip comparison for that slot.</p>
+                </div>
+                <button onclick="fillSampleData()" type="button" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium py-1.5 px-3 rounded-md transition-colors border border-indigo-200 cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Load Demo Data
+                </button>
+            </div>
+
+            <form id="metricsForm" class="p-4 sm:p-6 space-y-6">
+                <div class="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/80">
+                    <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-building mr-1"></i> Company Profiles &amp; Valuations
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                        <div class="col-span-2 md:col-span-1 pb-1 hidden md:block">
+                            <label class="block text-xs font-semibold text-slate-500 uppercase">Metrics Header</label>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Company A Name</label>
+                            <input type="text" id="comp_a_name" value="Company A" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Company B Name</label>
+                            <input type="text" id="comp_b_name" value="Company B" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Company C Name</label>
+                            <input type="text" id="comp_c_name" placeholder="Optional Company" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Company D Name</label>
+                            <input type="text" id="comp_d_name" placeholder="Optional Company" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 items-center mt-3 pt-3 border-t border-indigo-100/40">
+                        <div class="col-span-2 md:col-span-1">
+                            <span class="block text-xs font-semibold text-slate-700">Market Capitalization (Cr)</span>
+                        </div>
+                        <input type="number" step="any" id="comp_a_mcap" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        <input type="number" step="any" id="comp_b_mcap" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        <input type="number" step="any" id="comp_c_mcap" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                        <input type="number" step="any" id="comp_d_mcap" class="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-indigo-600">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="border-b border-slate-200">
+                                <th class="py-2 text-xs font-bold text-slate-500 tracking-wider w-1/5">Financial Parameter (in Cr)</th>
+                                <th class="py-2 text-xs font-bold text-indigo-700 tracking-wider w-1/5">Peer A</th>
+                                <th class="py-2 text-xs font-bold text-indigo-700 tracking-wider w-1/5">Peer B</th>
+                                <th class="py-2 text-xs font-bold text-indigo-700 tracking-wider w-1/5">Peer C</th>
+                                <th class="py-2 text-xs font-bold text-indigo-700 tracking-wider w-1/5">Peer D</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Total Revenue / Turnover</td>
+                                <td><input type="number" step="any" id="comp_a_revenue" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_revenue" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_revenue" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_revenue" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">EBITDA</td>
+                                <td><input type="number" step="any" id="comp_a_ebitda" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_ebitda" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_ebitda" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_ebitda" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Net Profit (PAT)</td>
+                                <td><input type="number" step="any" id="comp_a_pat" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_pat" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_pat" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_pat" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Total Equity Base</td>
+                                <td><input type="number" step="any" id="comp_a_equity" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_equity" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_equity" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_equity" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Capital Employed (CE)</td>
+                                <td><input type="number" step="any" id="comp_a_ce" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_ce" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_ce" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_ce" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Total Debt Liabilities</td>
+                                <td><input type="number" step="any" id="comp_a_debt" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_debt" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_debt" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_debt" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">EBIT (Operating Income)</td>
+                                <td><input type="number" step="any" id="comp_a_ebit" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_ebit" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_ebit" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_ebit" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Annual Interest Expenses</td>
+                                <td><input type="number" step="any" id="comp_a_interest" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_interest" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_interest" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_interest" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Current Assets</td>
+                                <td><input type="number" step="any" id="comp_a_curassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_curassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_curassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_curassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Current Liabilities</td>
+                                <td><input type="number" step="any" id="comp_a_curliab" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_curliab" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_curliab" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_curliab" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Inventories Stock</td>
+                                <td><input type="number" step="any" id="comp_a_inv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_inv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_inv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_inv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Accounts Receivables</td>
+                                <td><input type="number" step="any" id="comp_a_recv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_recv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_recv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_recv" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Accounts Payables</td>
+                                <td><input type="number" step="any" id="comp_a_pay" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_pay" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_pay" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_pay" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Total Average Assets</td>
+                                <td><input type="number" step="any" id="comp_a_avgassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_avgassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_avgassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_avgassets" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Net Annual Earnings <span class="text-xs text-slate-400 font-normal">(or skip to use PAT)</span></td>
+                                <td><input type="number" step="any" id="comp_a_earnings" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_earnings" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_earnings" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_earnings" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Total Outstanding Shares</td>
+                                <td><input type="number" step="any" id="comp_a_shares" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_shares" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_shares" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_shares" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Market Price per Share</td>
+                                <td><input type="number" step="any" id="comp_a_price" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_price" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_price" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_price" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">EPS Forward Growth Rate (%)</td>
+                                <td><input type="number" step="any" id="comp_a_egrowth" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_egrowth" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_egrowth" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_egrowth" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Enterprise Value (EV)</td>
+                                <td><input type="number" step="any" id="comp_a_ev" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_ev" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_ev" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_ev" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-2 font-medium text-slate-700">Industry PE Base Ratio</td>
+                                <td><input type="number" step="any" id="comp_a_indpe" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_b_indpe" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_c_indpe" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                                <td><input type="number" step="any" id="comp_d_indpe" class="w-11/12 border border-slate-300 rounded px-2 py-1 focus:outline-indigo-600"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                    <button type="button" onclick="clearAllInputs()" class="w-full sm:w-auto px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-semibold rounded-lg transition-colors cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Reset Fields
+                    </button>
+                    <button type="button" onclick="generateAnalysis()" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> Calculate &amp; Run Analysis
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="resultsSection" class="hidden space-y-8">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">Financial Evaluation Matrix Dashboard</h2>
+                    <p class="text-xs text-slate-500">Color legend: <span class="inline-block w-3 h-3 bg-emerald-100 border border-emerald-400 rounded-xs mx-1"></span> Top Performer | <span class="inline-block w-3 h-3 bg-rose-50 rounded-xs mx-1"></span> Peer Laggard</p>
+                </div>
+                <button onclick="exportToExcel()" class="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-file-excel"></i> Export Sheet to Excel (.xls)
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="verdictScorecardContainer">
+                </div>
+
+            <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[750px]" id="analysisOutputTable">
+                        <thead class="bg-slate-800 text-white text-xs uppercase font-medium">
+                            <tr>
+                                <th class="p-3 w-1/4">Evaluated Core Ratio Metric</th>
+                                <th id="table_header_a" class="p-3 text-center">Company A</th>
+                                <th id="table_header_b" class="p-3 text-center">Company B</th>
+                                <th id="table_header_c" class="p-3 text-center">Company C</th>
+                                <th id="table_header_d" class="p-3 text-center">Company D</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm font-medium text-slate-700">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-slate-100 p-6 rounded-xl shadow-md space-y-4">
+                <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Automatic Strategic Executive Interpretation
+                </h3>
+                <div class="divide-y divide-slate-800 text-xs sm:text-sm space-y-3" id="interpretationsLogContainer">
+                    </div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // Definitions database configuration mapping directions for best values
+        const RATIO_SCHEMAS = {
+            ebitdaMargin: { label: "EBITDA Margin (%)", formula: "EBITDA / Revenue", higherBetter: true },
+            patMargin: { label: "PAT Margin (%)", formula: "PAT / Revenue", higherBetter: true },
+            roe: { label: "Return on Equity (ROE) (%)", formula: "PAT / Equity Base", higherBetter: true },
+            roce: { label: "Return on Capital Employed (ROCE) (%)", formula: "EBIT / Capital Employed", higherBetter: true },
+            debtToEquity: { label: "Debt to Equity Ratio (x)", formula: "Total Debt / Equity", higherBetter: false },
+            interestCoverage: { label: "Interest Coverage Ratio (x)", formula: "EBIT / Interest Expense", higherBetter: true },
+            currentRatio: { label: "Current Ratio (x)", formula: "Current Assets / Current Liabilities", higherBetter: true },
+            quickRatio: { label: "Quick Ratio (x)", formula: "(Current Assets - Inventory) / Current Liabilities", higherBetter: true },
+            receivableTurnover: { label: "Account Receivable Ratio (x)", formula: "Revenue / Accounts Receivable", higherBetter: true },
+            payableTurnover: { label: "Account Payable Ratio (x)", formula: "Revenue / Accounts Payable", higherBetter: false },
+            assetTurnover: { label: "Asset Turnover Ratio (x)", formula: "Revenue / Average Assets", higherBetter: true },
+            inventoryTurnover: { label: "Inventory Turnover Ratio (x)", formula: "Revenue / Inventories Stock", higherBetter: true },
+            eps: { label: "Earnings Per Share (EPS)", formula: "Earnings / Total Shares", higherBetter: true },
+            peRatio: { label: "Price to Earnings (P/E) Ratio", formula: "Market Price / EPS", higherBetter: false },
+            pegRatio: { label: "PEG Ratio (x)", formula: "PE Ratio / EPS Growth Rate", higherBetter: false },
+            priceToBook: { label: "Price to Book Value (P/B)", formula: "Market Price / (Equity / Shares)", higherBetter: false },
+            evToNetProfit: { label: "EV to Net Profit Ratio (x)", formula: "EV / PAT", higherBetter: false },
+            peVsIndustrialPe: { label: "P/E vs Industry P/E Variance", formula: "PE Ratio - Industry PE", higherBetter: false }
+        };
+
+        function fillSampleData() {
+            const data = {
+                comp_a_name: "Alpha Tech", comp_b_name: "Beta Indus", comp_c_name: "Gamma Corp", comp_d_name: "",
+                comp_a_mcap: 5000, comp_b_mcap: 3800, comp_c_mcap: 1200, comp_d_mcap: "",
+                comp_a_revenue: 1200, comp_b_revenue: 1500, comp_c_revenue: 450, comp_d_revenue: "",
+                comp_a_ebitda: 300, comp_b_ebitda: 280, comp_c_ebitda: 60, comp_d_ebitda: "",
+                comp_a_pat: 180, comp_b_pat: 130, comp_c_pat: 22, comp_d_pat: "",
+                comp_a_equity: 800, comp_b_equity: 950, comp_c_equity: 300, comp_d_equity: "",
+                comp_a_ce: 1100, comp_b_ce: 1400, comp_c_ce: 410, comp_d_ce: "",
+                comp_a_debt: 200, comp_b_debt: 450, comp_c_debt: 90, comp_d_debt: "",
+                comp_a_ebit: 260, comp_b_ebit: 220, comp_c_ebit: 45, comp_d_ebit: "",
+                comp_a_interest: 20, comp_b_interest: 50, comp_c_interest: 12, comp_d_interest: "",
+                comp_a_curassets: 450, comp_b_curassets: 600, comp_c_curassets: 180, comp_d_curassets: "",
+                comp_a_curliab: 250, comp_b_curliab: 400, comp_c_curliab: 110, comp_d_curliab: "",
+                comp_a_inv: 120, comp_b_inv: 220, comp_c_inv: 65, comp_d_inv: "",
+                comp_a_recv: 90, comp_b_recv: 140, comp_c_recv: 40, comp_d_recv: "",
+                comp_a_pay: 70, comp_b_pay: 110, comp_c_pay: 30, comp_d_pay: "",
+                comp_a_avgassets: 1300, comp_b_avgassets: 1650, comp_c_avgassets: 500, comp_d_avgassets: "",
+                comp_a_earnings: 180, comp_b_earnings: 130, comp_c_earnings: 22, comp_d_earnings: "",
+                comp_a_shares: 10, comp_b_shares: 12, comp_c_shares: 5, comp_d_shares: "",
+                comp_a_price: 500, comp_b_price: 316, comp_c_price: 240, comp_d_price: "",
+                comp_a_egrowth: 15, comp_b_egrowth: 10, comp_c_egrowth: 8, comp_d_egrowth: "",
+                comp_a_ev: 5100, comp_b_ev: 4100, comp_c_ev: 1250, comp_d_ev: "",
+                comp_a_indpe: 25, comp_b_indpe: 25, comp_c_indpe: 25, comp_d_indpe: ""
+            };
+            Object.keys(data).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.value = data[key];
+            });
+        }
+
+        function clearAllInputs() {
+            document.getElementById('metricsForm').reset();
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+
+        function getNum(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const val = el.value.trim();
+            return (val === "" || isNaN(val)) ? null : parseFloat(val);
+        }
+
+        function generateAnalysis() {
+            const peers = [
+                { id: 'a', name: document.getElementById('comp_a_name')?.value || 'Company A', active: false, scorecard: 0 },
+                { id: 'b', name: document.getElementById('comp_b_name')?.value || 'Company B', active: false, scorecard: 0 },
+                { id: 'c', name: document.getElementById('comp_c_name')?.value || 'Company C', active: false, scorecard: 0 },
+                { id: 'd', name: document.getElementById('comp_d_name')?.value || 'Company D', active: false, scorecard: 0 }
+            ];
+
+            // Filter out empty columns automatically
+            peers.forEach(p => {
+                const revenue = getNum(`comp_${p.id}_revenue`);
+                const pat = getNum(`comp_${p.id}_pat`);
+                const shares = getNum(`comp_${p.id}_shares`);
+                if (revenue !== null || pat !== null || shares !== null) {
+                    p.active = true;
+                }
+            });
+
+            const totalActive = peers.filter(p => p.active).length;
+            if (totalActive < 1) {
+                alert("Please enter financial parameters for at least one company.");
+                return;
+            }
+
+            // Sync dynamic column table headers
+            peers.forEach(p => {
+                const headEl = document.getElementById(`table_header_${p.id}`);
+                if (headEl) {
+                    headEl.textContent = p.name + (!p.active ? " (N/A)" : "");
+                    headEl.className = p.active ? "p-3 text-center bg-indigo-900 font-bold text-white" : "p-3 text-center bg-slate-800 text-slate-500 opacity-40 font-normal";
+                }
+            });
+
+            const computedMatrix = {};
+            Object.keys(RATIO_SCHEMAS).forEach(ratioKey => {
+                computedMatrix[ratioKey] = {};
+                
+                peers.forEach(p => {
+                    if (!p.active) {
+                        computedMatrix[ratioKey][p.id] = null;
+                        return;
+                    }
+
+                    const rev = getNum(`comp_${p.id}_revenue`);
+                    const ebitda = getNum(`comp_${p.id}_ebitda`);
+                    const pat = getNum(`comp_${p.id}_pat`);
+                    const eq = getNum(`comp_${p.id}_equity`);
+                    const ce = getNum(`comp_${p.id}_ce`);
+                    const debt = getNum(`comp_${p.id}_debt`);
+                    const ebit = getNum(`comp_${p.id}_ebit`);
+                    const intr = getNum(`comp_${p.id}_interest`);
+                    const ca = getNum(`comp_${p.id}_curassets`);
+                    const cl = getNum(`comp_${p.id}_curliab`);
+                    const inv = getNum(`comp_${p.id}_inv`);
+                    const rec = getNum(`comp_${p.id}_recv`);
+                    const pay = getNum(`comp_${p.id}_pay`);
+                    const assets = getNum(`comp_${p.id}_avgassets`);
+                    const earn = getNum(`comp_${p.id}_earnings`);
+                    const shares = getNum(`comp_${p.id}_shares`);
+                    const prc = getNum(`comp_${p.id}_price`);
+                    const gro = getNum(`comp_${p.id}_egrowth`);
+                    const ev = getNum(`comp_${p.id}_ev`);
+                    const indpe = getNum(`comp_${p.id}_indpe`);
+
+                    let calc = null;
+                    
+                    try {
+                        switch (ratioKey) {
+                            case 'ebitdaMargin': if (rev && ebitda) calc = (ebitda / rev) * 100; break;
+                            case 'patMargin': if (rev && pat) calc = (pat / rev) * 100; break;
+                            case 'roe': if (eq && pat) calc = (pat / eq) * 100; break;
+                            case 'roce': if (ce && ebit) calc = (ebit / ce) * 100; break;
+                            case 'debtToEquity': if (eq) calc = (debt || 0) / eq; break;
+                            case 'interestCoverage': if (intr && ebit) calc = ebit / intr; break;
+                            case 'currentRatio': if (cl && ca) calc = ca / cl; break;
+                            case 'quickRatio': if (cl && ca) calc = (ca - (inv || 0)) / cl; break;
+                            case 'receivableTurnover': if (rec && rev) calc = rev / rec; break;
+                            case 'payableTurnover': if (pay && rev) calc = rev / pay; break;
+                            case 'assetTurnover': if (assets && rev) calc = rev / assets; break;
+                            case 'inventoryTurnover': if (inv && rev) calc = rev / inv; break;
+                            case 'eps': 
+                                const finalEarnings = (earn !== null) ? earn : pat;
+                                if (shares && finalEarnings !== null) calc = finalEarnings / shares; 
+                                break;
+                            case 'peRatio': 
+                                const baseEps = (earn !== null ? earn : pat) / shares;
+                                if (prc && baseEps) calc = prc / baseEps; 
+                                break;
+                            case 'pegRatio': 
+                                const pegEps = (earn !== null ? earn : pat) / shares;
+                                const pegPe = prc / pegEps;
+                                if (gro && pegPe) calc = pegPe / gro; 
+                                break;
+                            case 'priceToBook': if (shares && eq && prc) calc = prc / (eq / shares); break;
+                            case 'evToNetProfit': if (pat && ev) calc = ev / pat; break;
+                            case 'peVsIndustrialPe': 
+                                const indEps = (earn !== null ? earn : pat) / shares;
+                                if (prc && indEps && indpe !== null) calc = (prc / indEps) - indpe; 
+                                break;
+                        }
+                    } catch (err) { calc = null; }
+
+                    computedMatrix[ratioKey][p.id] = (calc === null || isNaN(calc) || !isFinite(calc)) ? null : calc;
+                });
+            });
+
+            const tbody = document.querySelector("#analysisOutputTable tbody");
+            tbody.innerHTML = "";
+            const interpretationsLog = [];
+
+            Object.keys(RATIO_SCHEMAS).forEach(ratioKey => {
+                const schema = RATIO_SCHEMAS[ratioKey];
+                const rowValues = computedMatrix[ratioKey];
+
+                let bestId = null;
+                let worstId = null;
+                let bestVal = schema.higherBetter ? -Infinity : Infinity;
+                let worstVal = schema.higherBetter ? Infinity : -Infinity;
+
+                peers.forEach(p => {
+                    if (!p.active || rowValues[p.id] === null) return;
+                    const val = rowValues[p.id];
+                    
+                    if (schema.higherBetter) {
+                        if (val > bestVal) { bestVal = val; bestId = p.id; }
+                        if (val < worstVal) { worstVal = val; worstId = p.id; }
+                    } else {
+                        if (val < bestVal) { bestVal = val; bestId = p.id; }
+                        if (val > worstVal) { worstVal = val; worstId = p.id; }
+                    }
+                });
+
+                if (bestId !== null && totalActive > 1) {
+                    const match = peers.find(p => p.id === bestId);
+                    if (match) match.scorecard += 1;
+                }
+
+                let rowHtml = `<tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-3 border-b border-slate-200">
+                        <div class="font-bold text-slate-900 text-xs sm:text-sm">${schema.label}</div>
+                        <div class="text-[10px] text-slate-400 font-normal">Formula: ${schema.formula}</div>
+                    </td>`;
+
+                peers.forEach(p => {
+                    const rawVal = rowValues[p.id];
+                    let displayStr = "N/A";
+                    let cellClass = "p-3 text-center border-b border-slate-200 text-xs sm:text-sm font-semibold";
+
+                    if (rawVal !== null) {
+                        displayStr = rawVal.toFixed(2);
+                        if (totalActive > 1) {
+                            if (p.id === bestId) {
+                                cellClass += " bg-emerald-100 text-emerald-900 font-bold border-2 border-emerald-500/40 rounded shadow-xs";
+                            } else if (p.id === worstId) {
+                                cellClass += " bg-rose-50 text-rose-700 font-normal";
+                            }
+                        }
+                    } else {
+                        cellClass += " text-slate-300 font-normal";
+                    }
+
+                    rowHtml += `<td class="${cellClass}">${displayStr}</td>`;
+                });
+
+                rowHtml += `</tr>`;
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+
+                if (totalActive > 1 && bestId !== null && bestVal !== -Infinity && bestVal !== Infinity) {
+                    const winnerName = peers.find(p => p.id === bestId).name;
+                    let interpretationText = "";
+
+                    if (ratioKey === 'eps') {
+                        interpretationText = `<strong>${winnerName}</strong> records a stronger Earnings Per Share of <strong>${bestVal.toFixed(2)}</strong>, displaying premium profitability per share holding over competitors.`;
+                    } else if (ratioKey === 'peRatio') {
+                        interpretationText = `<strong>${winnerName}</strong> is valued cheaper with a lower P/E multiple of <strong>${bestVal.toFixed(2)}</strong>, offering a more attractive buy entry point relative to its raw earnings footprint.`;
+                    } else if (schema.higherBetter) {
+                        interpretationText = `<strong>${winnerName}</strong> leads the group setup here at <strong>${bestVal.toFixed(2)}</strong>, implying maximized operational efficiencies over alternative peer structures.`;
+                    } else {
+                        interpretationText = `<strong>${winnerName}</strong> maintains an ideal profile of <strong>${bestVal.toFixed(2)}</strong>, showing conservative financial structures or optimal cost protection management.`;
+                    }
+
+                    interpretationsLog.push(`
+                        <div class="py-2.5 flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 border-b border-slate-800 last:border-0 text-xs sm:text-sm">
+                            <span class="text-amber-400 font-bold shrink-0 sm:w-56 flex items-center gap-1.5">
+                                <i class="fa-solid fa-square-poll-vertical text-[11px]"></i> ${schema.label}:
+                            </span>
+                            <span class="text-slate-300 font-light">${interpretationText}</span>
+                        </div>
+                    `);
+                }
+            });
+
+            const interpContainer = document.getElementById("interpretationsLogContainer");
+            if (interpContainer) {
+                interpContainer.innerHTML = interpretationsLog.length > 0 ? interpretationsLog.join("") : `<p class="text-slate-400 italic">Provide entries for multiple peers to view instant automated interpretations reports.</p>`;
+            }
+
+            const scorecardContainer = document.getElementById("verdictScorecardContainer");
+            if (scorecardContainer) {
+                scorecardContainer.innerHTML = "";
+                peers.forEach(p => {
+                    if (!p.active) return;
+                    const scoreOutOfTen = ((p.scorecard / Object.keys(RATIO_SCHEMAS).length) * 10).toFixed(1);
+                    scorecardContainer.insertAdjacentHTML('beforeend', `
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between shadow-xs relative overflow-hidden">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Peer Scorecard Rating</span>
+                                <h4 class="text-lg font-black text-slate-800 mt-0.5">${p.name}</h4>
+                            </div>
+                            <div class="mt-4 flex items-baseline gap-1">
+                                <span class="text-3xl font-black text-indigo-600">${scoreOutOfTen}</span>
+                                <span class="text-xs text-slate-400 font-medium">/ 10.0 Points</span>
+                            </div>
+                            <div class="mt-2 text-[11px] text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                                Outperformed competitors in <strong>${p.scorecard}</strong> core ratio rows.
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function exportToExcel() {
+            const table = document.getElementById("analysisOutputTable");
+            let html = table.outerHTML;
+            html = html.replace(/<input[^>]*>/g, "");
+            
+            const blob = new Blob([html], { type: "application/vnd.ms-excel" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "Peer_Stock_Ratio_Analysis_Report.xls";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
